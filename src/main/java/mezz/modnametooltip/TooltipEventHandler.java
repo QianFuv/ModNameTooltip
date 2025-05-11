@@ -4,6 +4,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.client.gui.screens.Screen; // Added import for Screen class
 import net.minecraftforge.event.entity.player.ItemTooltipEvent;
 import net.minecraftforge.fml.ModContainer;
 import net.minecraftforge.fml.ModList;
@@ -25,19 +26,25 @@ public class TooltipEventHandler {
 		if (modNameFormat.isEmpty()) {
 			return;
 		}
+
+		// Only show the mod name tooltip when Shift is held down
+		if (!Screen.hasShiftDown()) {
+			return;
+		}
+
 		ItemStack itemStack = event.getItemStack();
 		getModName(itemStack)
-			.ifPresent(modName -> {
-				var toolTip = event.getToolTip();
-				if (!isModNameAlreadyPresent(toolTip, modName)) {
-					toolTip.add(Component.literal(modNameFormat + modName));
-				}
-			});
+				.ifPresent(modName -> {
+					var toolTip = event.getToolTip();
+					if (!isModNameAlreadyPresent(toolTip, modName)) {
+						toolTip.add(Component.literal(modNameFormat + modName));
+					}
+				});
 	}
 
 	private static Optional<String> getModName(ItemStack itemStack) {
 		return getCreatorModId(itemStack)
-			.map(TooltipEventHandler::getModName);
+				.map(TooltipEventHandler::getModName);
 	}
 
 	private static Optional<String> getCreatorModId(ItemStack itemStack) {
@@ -52,9 +59,9 @@ public class TooltipEventHandler {
 	private static String getModName(String modId) {
 		ModList modList = ModList.get();
 		return modList.getModContainerById(modId)
-			.map(ModContainer::getModInfo)
-			.map(IModInfo::getDisplayName)
-			.orElseGet(() -> StringUtils.capitalize(modId));
+				.map(ModContainer::getModInfo)
+				.map(IModInfo::getDisplayName)
+				.orElseGet(() -> StringUtils.capitalize(modId));
 	}
 
 	private static boolean isModNameAlreadyPresent(List<Component> tooltip, String modName) {
